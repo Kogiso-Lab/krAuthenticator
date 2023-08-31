@@ -1,63 +1,139 @@
-name: Build and Release
-
+name: push
 on:
   push:
-    branches:
-      - main
+    tags:
+      - "v*"
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [windows-latest, macOS-latest]
-    runs-on: ${{ matrix.os }}
+  windows-build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@master
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@master
+        with: { python-version: 3.8 }
+
+      - name: Upgrade pip
+        run: python -m pip install -r requirements.txt
+
+      - name: build
+        run: pyinstaller -F krAuthenticator.py
+  
+      - name: upload
+        uses: actions/upload-artifact@v1
+        with:
+          name: krAuthenticator-windows
+          path: dist/krAuthenticator.exe
+
+  macOS-build:
+    runs-on: macOS-latest
+    steps:
+      - name: Checkout commit
+        uses: actions/checkout@master
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@master
+        with: { python-version: 3.8 }
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip PyInstaller
+
+      - name: build
+        run: pyinstaller -F krAuthenticator.py
+
+      - name: upload
+        uses: actions/upload-artifact@v1
+        with:
+          name: krAuthenticator-macos
+          path: dist/krAuthenticator
+
+  ubuntu-build:
+    runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v2
+      - name: Checkout commit
+        uses: actions/checkout@master
 
-    - name: Setup Python
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.10'
+      - name: Set up Python 3.8
+        uses: actions/setup-python@master
+        with: { python-version: 3.8 }
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install pyinstaller
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip PyInstaller
 
-    - name: Build Executable
-      run: pyinstaller --onefile krAuthenticator.py
+      - name: build
+        run: pyinstaller -F krAuthenticator.py
 
-    - name: Rename Executable for Mac
-      if: matrix.os == 'macOS-latest'
-      run: mv ./dist/krAuthenticator ./dist/krAuthenticator-mac
+      - name: upload
+        uses: actions/upload-artifact@v1
+        with:
+          name: krAuthenticator-linux
+          path: dist/krAuthenticator
 
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # ここでトークンを設定
-      with:
-        tag_name: 'release-${{ github.run_number }}'  # ここで適切なタグ名を設定
-        release_name: 'Release ${{ github.run_number }}'  # ここで適切なリリース名を設定
-        draft: false
-        prerelease: false
+  release:
+    needs: [ubuntu-build, macOS-build, windows-build]
+    runs-on: ubuntu-latest
 
-    - name: Upload Executable to Release
-      if: matrix.os == 'windows-latest'
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./dist/krAuthenticator.exe
-        asset_name: krAuthenticator-windows.exe
-        asset_content_type: application/octet-stream
+    steps:
+      - name: Download Linux
+        uses: actions/download-artifact@v1
+        with:
+          name: krAuthenticator-linux
 
-    - name: Upload Executable to Release
-      if: matrix.os == 'macOS-latest'
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./dist/krAuthenticator-mac
-        asset_name: krAuthenticator-mac
-        asset_content_type: application/octet-stream
+      - name: Download Mac
+        uses: actions/download-artifact@v1
+        with:
+          name: krAuthenticator-macos
+
+      - name: Download Windows
+        uses: actions/download-artifact@v1
+        with:
+          name: krAuthenticator-windows
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Zip
+        run: |
+          tar -C krAuthenticator-macos -pczvf krAuthenticator-macos.tar.gz krAuthenticator
+          tar -C krAuthenticator-linux -pczvf krAuthenticator-linux.tar.gz krAuthenticator
+          zip --junk-paths krAuthenticator-windows ./krAuthenticator-windows/krAuthenticator.exe
+      - name: Append Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./krAuthenticator-macos.tar.gz
+          asset_name: krAuthenticator-macos.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Append Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./krAuthenticator-linux.tar.gz
+          asset_name: krAuthenticator-linux.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Append Binary
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./krAuthenticator-windows.zip
+          asset_name: krAuthenticator-windows.zip
+          asset_content_type: application/zip

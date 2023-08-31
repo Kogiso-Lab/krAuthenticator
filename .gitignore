@@ -1,1 +1,4 @@
 login_info.json
+*.spec
+build/*
+dist/*
