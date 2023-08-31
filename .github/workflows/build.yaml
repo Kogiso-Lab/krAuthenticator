@@ -1,8 +1,10 @@
-name: push
+name: Build and Release
 on:
   push:
+    branches:
+      - main  # mainブランチが更新された場合
     tags:
-      - "v*"
+      - "v*"  # vで始まるタグがプッシュされた場合
 
 jobs:
   windows-build:
