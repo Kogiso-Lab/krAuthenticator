@@ -11,10 +11,10 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Checkout commit
-        uses: actions/checkout@master
+        uses: actions/checkout@main
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@master
+        uses: actions/setup-python@main
         with: { python-version: 3.8 }
 
       - name: Upgrade pip
@@ -33,10 +33,10 @@ jobs:
     runs-on: macOS-latest
     steps:
       - name: Checkout commit
-        uses: actions/checkout@master
+        uses: actions/checkout@main
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@master
+        uses: actions/setup-python@main
         with: { python-version: 3.8 }
 
       - name: Upgrade pip
@@ -56,10 +56,10 @@ jobs:
 
     steps:
       - name: Checkout commit
-        uses: actions/checkout@master
+        uses: actions/checkout@main
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@master
+        uses: actions/setup-python@main
         with: { python-version: 3.8 }
 
       - name: Upgrade pip
