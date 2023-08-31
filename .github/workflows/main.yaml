@@ -39,8 +39,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # ここでトークンを設定
       with:
-        tag_name: ${{ github.sha }}
-        release_name: Release ${{ github.sha }}
+        tag_name: 'release-${{ github.run_number }}'  # ここで適切なタグ名を設定
+        release_name: 'Release ${{ github.run_number }}'  # ここで適切なリリース名を設定
         draft: false
         prerelease: false
 
