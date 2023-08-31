@@ -74,8 +74,15 @@ try:
     else:
         messagebox.showinfo("krAuthenticator", "ネットワークに接続されています．")
         
-except:
+except FileNotFoundError:
     messagebox.showerror(
             "krAuthenticator", 
-            "パスワード情報が見つかりませんでした．exeファイルと同じディレクトリにlogin_info.jsonを配置してください．"+str(sys.exc_info()[0])
-        )
+            "パスワード情報が見つかりませんでした．"
+            +"exeファイルと同じディレクトリにlogin_info.jsonを配置してください．"
+            +str(sys.exc_info()[0])
+            )
+except :
+    messagebox.showerror(
+            "krAuthenticator", 
+            "エラーが発生しました．"
+            +str(sys.exc_info()[0]))
