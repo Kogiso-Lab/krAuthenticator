@@ -21,6 +21,15 @@ def is_connected():
         pass
     return False
 
+def can_access_web():
+    try:
+        response = requests.get('https://www.google.com')
+        if response.status_code == 200:
+            return True
+    except requests.RequestException:
+        pass
+    return False
+
 
 # 実行ファイルの位置を取得（PyInstaller対応）
 if getattr(sys, 'frozen', False):
@@ -65,7 +74,7 @@ try:
     if is_past_date:
         os.remove(json_path)
     
-    if not is_connected():
+    if not is_connected() or not can_access_web():
         # 認証を試みます
         authenticate(
                 username, 
