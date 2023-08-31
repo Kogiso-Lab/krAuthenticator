@@ -1,0 +1,59 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, macOS-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: pip install pyinstaller
+
+    - name: Build Executable
+      run: pyinstaller --onefile main.py
+
+    - name: Rename Executable for Mac
+      if: matrix.os == 'macOS-latest'
+      run: mv ./dist/main ./dist/main-mac
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        draft: false
+        prerelease: false
+
+    - name: Upload Executable to Release
+      if: matrix.os == 'windows-latest'
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/main.exe
+        asset_name: main-windows.exe
+        asset_content_type: application/octet-stream
+
+    - name: Upload Executable to Release
+      if: matrix.os == 'macOS-latest'
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./dist/main-mac
+        asset_name: main-mac
+        asset_content_type: application/octet-stream
