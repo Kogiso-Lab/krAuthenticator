@@ -27,11 +27,11 @@ jobs:
         python -m pip install pyinstaller
 
     - name: Build Executable
-      run: pyinstaller --onefile main.py
+      run: pyinstaller --onefile krAuthenticator.py
 
     - name: Rename Executable for Mac
       if: matrix.os == 'macOS-latest'
-      run: mv ./dist/main ./dist/main-mac
+      run: mv ./dist/krAuthenticator ./dist/krAuthenticator-mac
 
     - name: Create Release
       id: create_release
@@ -47,8 +47,8 @@ jobs:
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./dist/main.exe
-        asset_name: main-windows.exe
+        asset_path: ./dist/krAuthenticator.exe
+        asset_name: krAuthenticator-windows.exe
         asset_content_type: application/octet-stream
 
     - name: Upload Executable to Release
@@ -56,6 +56,6 @@ jobs:
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./dist/main-mac
-        asset_name: main-mac
+        asset_path: ./dist/krAuthenticator-mac
+        asset_name: krAuthenticator-mac
         asset_content_type: application/octet-stream
