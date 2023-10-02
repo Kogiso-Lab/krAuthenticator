@@ -48,7 +48,7 @@ def authenticate(username, password):
     response = requests.post(auth_url, data=payload, verify=False)
     
     if "ログインに失敗しました" in response.text:
-        messagebox.showerror("krAuthenticator", "認証失敗")
+        # messagebox.showerror("krAuthenticator", "認証失敗")
         pass
     else:
         messagebox.showinfo("krAuthenticator", "認証成功")
@@ -81,7 +81,8 @@ try:
                 password
             )
     else:
-        messagebox.showinfo("krAuthenticator", "ネットワークに接続されています．")
+        pass
+        # messagebox.showinfo("krAuthenticator", "ネットワークに接続されています．")
         
 except FileNotFoundError:
     messagebox.showerror(
